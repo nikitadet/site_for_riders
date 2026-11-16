@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrailSense — Филёвский парк</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="app">
+        <header class="app-header">
+            <h1>🚴 TrailSense</h1>
+            <p class="subtitle">Состояние грунта для райдеров · MVP v0.2</p>
+        </header>
+
+        <section class="card controls">
+            <div class="controls-row">
+                <button id="btnPark" class="btn btn-primary">📍 Филёвский парк</button>
+                <div class="city-group">
+                    <input type="text" id="cityInput" placeholder="Другой город, напр. Казань">
+                    <button id="btnCity" class="btn">Проверить</button>
+                </div>
+            </div>
+            <div class="soil-row">
+                <label for="soilSelect">Тип грунта:</label>
+                <select id="soilSelect">
+                    <option value="loam_medium" selected>Дерново-среднесуглинистый (держит воду дольше)</option>
+                    <option value="loam_light">Дерново-слабосуглинистый (просыхает быстрее)</option>
+                </select>
+            </div>
+        </section>
+
+        <p id="loading" class="loading hidden">⏳ Запрашиваю данные...</p>
+        <p id="errorBox" class="error hidden"></p>
+
+        <section id="statusCard" class="card status-card hidden">
+            <div id="statusTitle" class="status-title"></div>
+            <p id="statusAdvice" class="status-advice"></p>
+            <p id="dryingInfo" class="drying-info"></p>
+        </section>
+
+        <section id="dataCard" class="card hidden">
+            <h2>📡 Все данные от OpenWeatherMap</h2>
+            <div id="weatherHeader" class="weather-header"></div>
+            <div id="dataGrid" class="data-grid"></div>
+            <details class="raw-json">
+                <summary>Показать сырой JSON-ответ (для отладки)</summary>
+                <pre id="rawJson"></pre>
+            </details>
+        </section>
+
+        <footer class="app-footer">
+            Данные: OpenWeatherMap · Модель грунта: эвристика на основе ГОСТ 25100-2020 ·
+            Прогноз носит рекомендательный характер
+        </footer>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
