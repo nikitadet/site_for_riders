@@ -19,34 +19,12 @@ async function fetchWeather(spotId = 'filevsky') {
 
 document.getElementById('btnPark').addEventListener('click', () => fetchWeather('filevsky'));
 
-const PARK = { name: 'Филёвский парк (Москва)', lat: 55.7400, lon: 37.4619 };
 
 const SOILS = {
     loam_light:  { label: 'дерново-слабосуглинистый',  dryingBaseHours: 24, humidityWarn: 80 },
     loam_medium: { label: 'дерново-среднесуглинистый', dryingBaseHours: 36, humidityWarn: 85 }
 };
 
-// ================= ЗАПРОС К API =================
-async function fetchWeather(query) {
-    toggle('loading', true);
-    toggle('errorBox', false);
-    const url = `https://api.openweathermap.org/data/2.5/weather?${query}&appid=${API_KEY}&units=metric&lang=ru`;
-
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            if (response.status === 401) throw new Error('Ключ не принят. Проверь ключ: новый активируется от 10 минут до 2 часов.');
-            if (response.status === 404) throw new Error('Локация не найдена. Проверь название города.');
-            throw new Error('Ошибка API: ' + response.status);
-        }
-        const data = await response.json();
-        render(data);
-    } catch (e) {
-        showError(e.message === 'Failed to fetch' ? 'Нет соединения с интернетом.' : e.message);
-    } finally {
-        toggle('loading', false);
-    }
-}
 
 // ================= ЛОГИКА "ИНДЕКСА ПРИГОДНОСТИ" =================
 // Прокси-модель: API не знает влажность грунта, поэтому оцениваем её
@@ -199,16 +177,6 @@ function showError(msg) {
     toggle('errorBox', true);
 }
 
-// ================= ОБРАБОТЧИКИ КНОПОК =================
-document.getElementById('btnPark').addEventListener('click', () => {
-    fetchWeather(`lat=${PARK.lat}&lon=${PARK.lon}`);
-});
-
-document.getElementById('btnCity').addEventListener('click', () => {
-    const city = document.getElementById('cityInput').value.trim();
-    if (!city) return showError('Введи название города.');
-    fetchWeather(`q=${encodeURIComponent(city)}`);
-});
 
 document.getElementById('cityInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') document.getElementById('btnCity').click();
