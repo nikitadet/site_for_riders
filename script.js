@@ -1,4 +1,10 @@
 // ================= НАСТРОЙКИ =================
+const SOILS = {
+    loam_light:  { label: 'дерново-слабосуглинистый',  dryingBaseHours: 24, humidityWarn: 80 },
+    loam_medium: { label: 'дерново-среднесуглинистый', dryingBaseHours: 36, humidityWarn: 85 }
+};
+
+// ================= ЗАГРУЗКА ДАННЫХ (ключа здесь нет!) =================
 async function fetchWeather(spotId = 'filevsky') {
     toggle('loading', true);
     toggle('errorBox', false);
@@ -8,8 +14,7 @@ async function fetchWeather(spotId = 'filevsky') {
         const db = await response.json();
         const spot = db.spots[spotId];
         if (!spot) throw new Error('Спот не найден: ' + spotId);
-        render(spot.weather);
-        console.log('Данные обновлены:', new Date(db.updated_at).toLocaleString('ru-RU'));
+        render(spot.weather, spot.name, db.updated_at);
     } catch (e) {
         showError(e.message);
     } finally {
@@ -17,18 +22,9 @@ async function fetchWeather(spotId = 'filevsky') {
     }
 }
 
-document.getElementById('btnPark').addEventListener('click', () => fetchWeather('filevsky'));
-
-
-const SOILS = {
-    loam_light:  { label: 'дерново-слабосуглинистый',  dryingBaseHours: 24, humidityWarn: 80 },
-    loam_medium: { label: 'дерново-среднесуглинистый', dryingBaseHours: 36, humidityWarn: 85 }
-};
-
-
 // ================= ЛОГИКА "ИНДЕКСА ПРИГОДНОСТИ" =================
-// Прокси-модель: API не знает влажность грунта, поэтому оцениваем её
-// по осадкам, влажности воздуха, температуре и ветру.
+// Прокси-модель на основе ГОСТ 25100-2020: API не знает влажность грунта,
+// поэтому оцениваем её по осадкам, влажности воздуха, температуре и ветру.
 function assessTrail(w, soil) {
     const temp = w.main.temp;
     const hum = w.main.humidity;
@@ -74,7 +70,6 @@ function assessTrail(w, soil) {
 }
 
 // Оценка времени высыхания суглинка после дождя (часы).
-// База × поправки на температуру, ветер, облачность и влажность.
 function estimateDryingHours(w, soil) {
     const temp = w.main.temp;
     const wind = w.wind?.speed ?? 0;
@@ -97,12 +92,11 @@ function estimateDryingHours(w, soil) {
     return Math.max(2, Math.round(soil.dryingBaseHours * factor));
 }
 
-// ================= ОТРИСОВКА ВСЕХ ДАННЫХ =================
-function render(data) {
+// ================= ОТРИСОВКА =================
+function render(data, placeName, updatedAt) {
     const soil = SOILS[document.getElementById('soilSelect').value];
     const status = assessTrail(data, soil);
 
-    // --- Карточка статуса ---
     const card = document.getElementById('statusCard');
     card.className = 'card status-card level-' + status.level;
     document.getElementById('statusTitle').textContent = status.title;
@@ -112,18 +106,17 @@ function render(data) {
         : '';
     toggle('statusCard', true);
 
-    // --- Шапка с иконкой ---
     const icon = data.weather?.[0]?.icon;
     document.getElementById('weatherHeader').innerHTML = `
         ${icon ? `<img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="иконка погоды">` : ''}
         <div>
             <div class="big-temp">${Math.round(data.main.temp)}°C</div>
-            <div class="place">${data.name} · ${data.weather?.[0]?.description ?? ''}</div>
+            <div class="place">${placeName} · ${data.weather?.[0]?.description ?? ''}</div>
+            <div class="place">🕒 Данные от: ${new Date(updatedAt).toLocaleString('ru-RU')}</div>
         </div>`;
 
-    // --- Сетка: ВСЕ поля ответа API ---
     const items = [
-        ['Локация', `${data.name} (id ${data.id})`],
+        ['Локация', `${placeName} (станция OWM: ${data.name})`],
         ['Страна', data.sys?.country ?? 'н/д'],
         ['Координаты', `${data.coord.lat.toFixed(4)}, ${data.coord.lon.toFixed(4)}`],
         ['Время замера', formatTime(data.dt, data.timezone)],
@@ -152,7 +145,6 @@ function render(data) {
             <div class="value">${value}</div>
         </div>`).join('');
 
-    // --- Сырой JSON (для отладки и изучения структуры ответа) ---
     document.getElementById('rawJson').textContent = JSON.stringify(data, null, 2);
     toggle('dataCard', true);
 }
@@ -177,7 +169,9 @@ function showError(msg) {
     toggle('errorBox', true);
 }
 
+// ================= ОБРАБОТЧИКИ =================
+document.getElementById('btnPark').addEventListener('click', () => fetchWeather('filevsky'));
+document.getElementById('soilSelect').addEventListener('change', () => fetchWeather('filevsky'));
 
-document.getElementById('cityInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') document.getElementById('btnCity').click();
-});
+// Показываем данные сразу при открытии страницы
+fetchWeather();
