@@ -118,7 +118,6 @@ function render(data, placeName, updatedAt) {
     const items = [
         ['Локация', `${placeName} (станция OWM: ${data.name})`],
         ['Страна', data.sys?.country ?? 'н/д'],
-        ['Координаты', `${data.coord.lat.toFixed(4)}, ${data.coord.lon.toFixed(4)}`],
         ['Время замера', formatTime(data.dt, data.timezone)],
         ['Температура', `${Math.round(data.main.temp)} °C`],
         ['Ощущается как', `${Math.round(data.main.feels_like)} °C`],
@@ -130,9 +129,7 @@ function render(data, placeName, updatedAt) {
         ['Порывы ветра', data.wind?.gust != null ? `${data.wind.gust} м/с` : 'нет данных'],
         ['Облачность', `${data.clouds?.all ?? 'н/д'} %`],
         ['Дождь за 1 ч', data.rain?.['1h'] ? `${data.rain['1h']} мм` : 'нет'],
-        ['Дождь за 3 ч', data.rain?.['3h'] ? `${data.rain['3h']} мм` : 'нет'],
         ['Снег за 1 ч', data.snow?.['1h'] ? `${data.snow['1h']} мм` : 'нет'],
-        ['Снег за 3 ч', data.snow?.['3h'] ? `${data.snow['3h']} мм` : 'нет'],
         ['Восход', formatTime(data.sys?.sunrise, data.timezone)],
         ['Закат', formatTime(data.sys?.sunset, data.timezone)]
     ];
